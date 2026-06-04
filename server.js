@@ -45,7 +45,8 @@ app.post('/api/data', (req, res) => {
 app.listen(3001, () => console.log('✅  API server → http://localhost:3001'))
 
 // ── Gemini setup ─────────────────────────────────────────────────────────────
-const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY)
+const geminiApiKey = process.env.VITE_GEMINI_API_KEY;
+const genAI = new GoogleGenerativeAI(geminiApiKey)
 const MODEL  = process.env.VITE_GEMINI_MODEL || 'gemini-2.5-flash'
 
 const TOOLS = [
@@ -206,7 +207,8 @@ async function askGemini(chatId, userText) {
 }
 
 // ── Telegram Bot (polling) ───────────────────────────────────────────────────
-const bot = new TelegramBot(process.env.TELEGRAM_BOT, { polling: true })
+const token = process.env.TELEGRAM_BOT;
+const bot = new TelegramBot(token, { polling: true });
 
 bot.on('message', async msg => {
   const chatId = msg.chat.id
