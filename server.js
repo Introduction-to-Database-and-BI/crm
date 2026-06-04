@@ -42,7 +42,8 @@ app.post('/api/data', (req, res) => {
   res.sendStatus(200)
 })
 
-app.listen(3001, () => console.log('✅  API server → http://localhost:3001'))
+const PORT = process.env.PORT || 3001
+app.listen(PORT, () => console.log(`✅  API server → http://localhost:${PORT}`))
 
 // ── Gemini setup ─────────────────────────────────────────────────────────────
 const geminiApiKey = process.env.VITE_GEMINI_API_KEY;
