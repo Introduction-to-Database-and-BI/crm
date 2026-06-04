@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react'
 import { MessageCircle, X, Send, Trash2 } from 'lucide-react'
 import { useApp } from '../../context/AppContext'
 import { sendToGemini } from '../../utils/gemini'
-import { generateId } from '../../utils/dateUtils'
 import './ChatWidget.css'
 
 const STORAGE_KEY = 'crm_chat_messages'
@@ -30,7 +29,7 @@ function formatTime(iso) {
 }
 
 export default function ChatWidget() {
-  const { state, dispatch }     = useApp()
+  const { state, dispatch, refresh } = useApp()
   const [isOpen, setIsOpen]     = useState(false)
   const [messages, setMessages] = useState(loadMessages)
   const [input, setInput]       = useState('')
@@ -60,54 +59,6 @@ export default function ChatWidget() {
     e.preventDefault()
     if (!input.trim() || isTyping) return
 
-    // Snapshot of current app state for this request
-    const courses = state.courses
-    const tasks   = state.tasks
-
-    // Handler that executes Gemini tool calls against the live app state
-    function toolHandler(name, args) {
-      switch (name) {
-        case 'add_task': {
-          const task = {
-            id:        generateId(),
-            title:     args.title,
-            courseId:  args.courseId || '',
-            priority:  args.priority || 'medium',
-            deadline:  args.deadline || '',
-            completed: false,
-            createdAt: new Date().toISOString(),
-          }
-          dispatch({ type: 'ADD_TASK', payload: task })
-          const courseName = courses.find(c => c.id === args.courseId)?.name
-          return {
-            success: true,
-            taskId:  task.id,
-            message: `משימה "${args.title}" נוספה${courseName ? ` לקורס ${courseName}` : ''}`,
-          }
-        }
-
-        case 'toggle_task': {
-          const task = tasks.find(t => t.id === args.taskId)
-          if (!task) return { success: false, message: 'משימה לא נמצאה' }
-          dispatch({ type: 'TOGGLE_TASK', payload: args.taskId })
-          return {
-            success: true,
-            message: `משימה "${task.title}" ${task.completed ? 'בוטלה' : 'סומנה כהושלמה'}`,
-          }
-        }
-
-        case 'delete_task': {
-          const task = tasks.find(t => t.id === args.taskId)
-          if (!task) return { success: false, message: 'משימה לא נמצאה' }
-          dispatch({ type: 'DELETE_TASK', payload: args.taskId })
-          return { success: true, message: `משימה "${task.title}" נמחקה` }
-        }
-
-        default:
-          return { success: false, message: `פונקציה לא ידועה: ${name}` }
-      }
-    }
-
     const userMsg = {
       id:     Date.now(),
       text:   input.trim(),
@@ -122,16 +73,12 @@ export default function ChatWidget() {
     setIsTyping(true)
 
     try {
-      const reply = await sendToGemini(
-        historySnapshot,
-        userMsg.text,
-        { courses, tasks },
-        toolHandler,
-      )
+      const reply = await sendToGemini(historySnapshot, userMsg.text)
       setMessages(prev => [
         ...prev,
         { id: Date.now() + 1, text: reply, sender: 'support', time: new Date().toISOString() },
       ])
+      refresh()
     } catch (err) {
       console.error('Gemini error:', err)
       setError('שגיאה בתקשורת עם ה-AI. נסה שוב.')

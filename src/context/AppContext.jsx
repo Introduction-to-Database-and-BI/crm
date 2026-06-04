@@ -48,8 +48,8 @@ const AppContext = createContext(null)
 
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, null, load)
-  // Tracks the last JSON string we synced so we can avoid push↔pull loops
   const lastSyncedRef = useRef(null)
+  const pullRef = useRef(null)
 
   // 1. Always persist to localStorage
   useEffect(() => {
@@ -88,12 +88,15 @@ export function AppProvider({ children }) {
       }
     }
 
+    pullRef.current = pull
     pull()
     const id = setInterval(pull, 5000)
     return () => { mounted = false; clearInterval(id) }
   }, [])
 
-  return <AppContext.Provider value={{ state, dispatch }}>{children}</AppContext.Provider>
+  function refresh() { pullRef.current?.() }
+
+  return <AppContext.Provider value={{ state, dispatch, refresh }}>{children}</AppContext.Provider>
 }
 
 export function useApp() {

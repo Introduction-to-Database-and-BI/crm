@@ -42,6 +42,18 @@ app.post('/api/data', (req, res) => {
   res.sendStatus(200)
 })
 
+app.post('/api/chat', async (req, res) => {
+  const { message, chatId } = req.body ?? {}
+  if (!message) return res.status(400).json({ error: 'message required' })
+  try {
+    const reply = await askGemini(chatId || 'web', message)
+    res.json({ reply })
+  } catch (err) {
+    console.error('Chat API error:', err.message)
+    res.status(500).json({ error: err.message })
+  }
+})
+
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => console.log(`✅  API server → http://localhost:${PORT}`))
 
