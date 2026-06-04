@@ -6,6 +6,6 @@ export default defineConfig({
   preview: {
     host: '0.0.0.0',
     port: parseInt(process.env.PORT) || 4173,
-    allowedHosts: ['all'],
+    allowedHosts: true, // זה התיקון - מאשר ל-Vite לקבל את הכתובת של Railway
   },
 })
