@@ -1,6 +1,6 @@
 import { createContext, useContext, useReducer, useEffect, useRef } from 'react'
 
-const API  = 'http://localhost:3001/api/data'
+const API  = (import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/api/data'
 const KEYS = { courses: 'crm_courses', tasks: 'crm_tasks' }
 
 function load() {

@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "bot": "node server.js"
+    "bot": "node server.js",
+    "start": "node server.js",
+    "start:frontend": "npm run build && npm run preview"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
